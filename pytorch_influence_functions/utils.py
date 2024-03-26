@@ -35,17 +35,21 @@ def save_json(json_obj, json_path, append_if_exists=False,
             json_path = json_path.parents[0] / f'{str(json_path.stem)}_{time}'\
                                                f'{str(json_path.suffix)}'
 
+    # 如果要改写
     if overwrite_if_exists:
         append_if_exists = False
         with open(json_path, 'w+') as fout:
-            json.dump(json_obj, fout, indent=2)
+            json.dump(json_obj, fout, indent=2) #这一行调用json.dump函数，将Python对象json_obj序列化成JSON格式，并写入之前打开的
+            # 文件（即fout）。参数indent=2意味着输出的JSON数据将以两个空格的缩进格式化，使其更易于阅读。
         return
 
+    # 如果继续追加内容
     if append_if_exists:
         if json_path.exists():
             with open(json_path, 'r') as fin:
                 read_file = json.load(fin)
-            read_file.update(json_obj)
+            read_file.update(json_obj) #read_file.update(json_obj)：这行代码执行了update方法，将json_obj（一个Python字典）中的项
+            # 目更新到read_file字典中。如果json_obj中的键在read_file中已经存在，它们的值将被json_obj中的相应值覆盖。如果json_obj中的键在read_file中不存在，这些键值对将被添加到read_file中。
             with open(json_path, 'w+') as fout:
                 json.dump(read_file, fout, indent=2)
             return
@@ -121,19 +125,19 @@ def init_logging(filename=None):
 def get_default_config():
     """Returns a default config file"""
     config = {
-        'outdir': 'outdir',
-        'seed': 42,
-        'gpu': 0,
-        'dataset': 'CIFAR10',
-        'num_classes': 10,
-        'test_sample_num': 1,
+        'outdir': 'D:\OneDrive - The University of Liverpool\LLMs\InfluenceFunctions\outdir', # folder name to which the result json files are written
+        'seed': 42, #random seed for numpy, random, pytorch
+        'gpu': 1, # 1 calculate on GPU
+        'dataset': 'Emotion',
+        'num_classes': 6,
+        'test_sample_num': 1, #Default = False, number of samples per class starting from the test_sample_start_per_class to calculate the influence function for. E.g. if your dataset has 10 classes and you set this value to 1, then the influence functions will be calculated for 10 * 1 test samples, one per class. If False, calculates the influence for all images.
         'test_start_index': 0,
-        'recursion_depth': 1,
-        'r_averaging': 1,
-        'scale': None,
-        'damp': None,
+        'recursion_depth': 5000, #recursion depth for the s_test calculation. Greater recursion depth improves precision.
+        'r_averaging': 1, #number of s_test calculations to take the average of. Greater r averaging improves precision.
+        'scale': 1000, #scaling factor during s_test calculation.
+        'damp': 0.01,
         'calc_method': 'img_wise',
-        'log_filename': None,
+        'log_filename': None, #Default None, if set the output will be logged to this file in addition to stdout.
     }
 
     return config
