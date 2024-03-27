@@ -28,7 +28,7 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
 
     # Set up logging and save the metadata conf file
     # logging.info(f"Running on: {test_sample_num} images per class.")
-    logging.info(f"Starting at img number: {test_start_index}.")
+    logging.info(f"Starting at sentence: {test_start_index}.")
     influences_meta['test_sample_index_list'] = sample_list
     influences_meta_fn = f"influences_results_meta_{test_start_index}-" \
                          f"{test_sample_num}.json"
@@ -72,11 +72,11 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
         # logging.info("Influences: ")
         # logging.info(influence)
         logging.info("Most harmful img IDs: ")
-        logging.info(harmful[:4])
+        logging.info(harmful[:3])
         logging.info("Most helpful img IDs: ")
-        logging.info(helpful[:4])
+        logging.info(helpful[:3])
         # logging.info("The helpful list is")
-        # # logging.info(len(helpful))
+        # logging.info(len(helpful))
         # logging.info(helpful)
 
         influences_path = outdir.joinpath(f"influence_results_{test_start_index}_"
@@ -127,7 +127,7 @@ def calc_influence_single(model, train_loader, test_loader, test_id_num, gpu, da
         # s_test vector on single test sample
         s_test_vec = calc_s_test_single(model, src_list, input_trg_list, e_mask, d_mask, t_test, train_loader,
                                         gpu, damp, scale, recursion_depth=recursion_depth, r=r) # list[tensor],size[50,512]
-        print(f's test vec is {s_test_vec}')
+        # print(f's test vec is {s_test_vec}')
     # Calculate the influence function
     train_dataset_size = len(train_loader.dataset)
     influences = []
@@ -164,7 +164,7 @@ def calc_influence_single(model, train_loader, test_loader, test_id_num, gpu, da
                 for k, j in zip(grad_z_vec, s_test_vec)
             ]) / train_dataset_size # get average value of influence
         influences.append(tmp_influence.cpu()) # influences contain all the influence for all training data
-        display_progress("Calc. influence function: ", i, train_dataset_size)
+        # display_progress("Calc. influence function: ", i, train_dataset_size)
     helpful = np.argsort(influences) # This function call does not sort the influences array itself but returns an array
     # of indices. These indices are ordered such that, if used to index influences, the result would be a sorted array.
     harmful = helpful[::-1]
@@ -201,7 +201,7 @@ def calc_s_test_single(model, src_list, input_trg_list, e_mask, d_mask, t_test, 
         s_test_vec_list.append(s_test(src_list, input_trg_list, e_mask, d_mask, t_test, model, train_loader,
                                       gpu=gpu, damp=damp, scale=scale,
                                       recursion_depth=recursion_depth)) # append the hvp
-        display_progress("Averaging r-times: ", i, r)
+        # display_progress("Averaging r-times: ", i, r)
 
     ################################
     # TODO: Understand why the first[0] tensor is the largest with 1675 tensor

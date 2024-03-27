@@ -12,7 +12,7 @@ def load_model(src_length, trg_length):
     # config.num_labels = 6o
     # model = BertForSequenceClassification(config)
     model = Transformer(src_length, trg_length).to(device)
-    sta_dic = torch.load(f'{MODEL_DIR}\model-epoch100.pt')
+    sta_dic = torch.load(f'{MODEL_DIR}\model-epoch250.pt')
     print(type(sta_dic))
     model.load_state_dict(sta_dic, strict=False)
     model = model.to(device)

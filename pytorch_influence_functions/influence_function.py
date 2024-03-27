@@ -71,7 +71,7 @@ def s_test(src_list, input_trg_list, e_mask, d_mask, z_test, model, z_loader, gp
                     _v + (1 - damp) * _h_e - _hv / scale
                     for _v, _h_e, _hv in zip(v, h_estimate, hv)]
                 break #这样做是每次都随机生成一次training data
-        display_progress("Calc. s_test recursions: ", i, recursion_depth)
+        # display_progress("Calc. s_test recursions: ", i, recursion_depth)
 
     # print("h_estimate: ", h_estimate)
     return h_estimate
