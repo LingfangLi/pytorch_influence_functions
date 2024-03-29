@@ -39,6 +39,9 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
 
     influences = {}
     # Main loop for calculating the influence function one test sample per iteration.
+    harmful_array=[]
+    helpful_array=[]
+    test_array=[]
     for j in range(len(sample_list)):
         i = sample_list[j]
 
@@ -51,27 +54,38 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
         # harmful_indices = harmful
 
         test_sample_text = test_src_text_list_original[j].split()  # get test sentences base on index j
+        test_array.append(test_sample_text)
         helpful_sample_text =""
-        # harmful_sample_text =""
-        for k in range(3):
+        harmful_sample_text =""
+        #for k in range(3):
             # for idx1, idx2 in zip(helpful_indices,harmful_indices): # concatenate all the helpful training sentences but separate with ","
-             for idx1 in helpful_indices:
-                 # concatenate all the helpful training sentences but separate with ","
-                 helpful_sample_text += helpful_sample_text+","+train_src_text_list_original[idx1]  #
+        for idx1 in helpful_indices:
+            # concatenate all the helpful training sentences but separate with ","
+            harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx1] 
+        harmful_array.append(harmful_sample_text)
+        
+        for idx1 in helpful_indices:
+            # concatenate all the helpful training sentences but separate with ","
+            helpful_sample_text += helpful_sample_text+","+train_src_text_list_original[idx1]  #
                 # harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx2]  #
-
+        helpful_array.append(helpful_sample_text)
         # after every 10 test samples, write 3 cloumns [test sample, cancatenated harmful sentences,
         # cancatenated harmful sentences] into csv files
 
-        if j%10 == 0:
+        if j%3 == 0:
             # create a file which have file that name has j, sentence, 10 samples
             with open(f'sentence_output{j}.txt', 'w', newline='') as f:
-                f.write(test_sample_text)
-                f.write("\t")
-                # f.write(harmful_sample_text)
-                # f.write("\t")
-                f.write(helpful_sample_text)
-                f.write("\n")
+                for k in range(len(test_array)):
+                    f.write(test_array[k])
+                    f.write("\t")
+                    f.write(harmful_array[k])
+                    f.write("\t")
+                    f.write(helpful_array[k])
+                    f.write("\n")
+            f.close()
+            harmful_arrya=[]
+            helpful_array=[]
+            test_array=[]
         end_time = time.time()
 
         ###########
