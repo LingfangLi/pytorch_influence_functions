@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+
 import time
 import datetime
 import copy
@@ -10,7 +11,8 @@ from pathlib import Path
 from pytorch_influence_functions.influence_function import s_test, grad_z
 from pytorch_influence_functions.utils import save_json, display_progress
 
-def calc_img_wise(config, model, train_loader, test_loader,sample_list):
+
+def calc_img_wise(config, model, train_loader, test_loader, sample_list):
     """Calculates the influence function one test point at a time. Calcualtes
     the `s_test` and `grad_z` values on the fly and discards them afterwards.
 
@@ -18,11 +20,10 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
         config: dict, contains the configuration from cli params"""
     # deepcopy creates a new and separate copy of an entire object or list with its own unique memory address.
     influences_meta = copy.deepcopy(config)
-    test_sample_num = len(sample_list)# 1
-    test_start_index = config['test_start_index'] # 0
+    test_sample_num = len(sample_list)  # 1
+    test_start_index = config['test_start_index']  # 0
     outdir = Path(config['outdir'])
     outdir.mkdir(exist_ok=True, parents=True)
-
 
     # Set up logging and save the metadata conf file
     # logging.info(f"Running on: {test_sample_num} images per class.")
@@ -35,13 +36,13 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
 
     # get the dataloader along with source text list and target text list.
     train_loader, train_src_text_list_original, train_trg_text_list_original = get_data_loader(TRAIN_NAME)
-    test_loader,test_src_text_list_original,test_trg_text_list_original = get_data_loader(TEST_NAME)
+    test_loader, test_src_text_list_original, test_trg_text_list_original = get_data_loader(TEST_NAME)
 
     influences = {}
     # Main loop for calculating the influence function one test sample per iteration.
-    harmful_array=[]
-    helpful_array=[]
-    test_array=[]
+    harmful_array = []
+    helpful_array = []
+    test_array = []
     for j in range(len(sample_list)):
         i = sample_list[j]
 
@@ -51,41 +52,41 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
             damp=config['damp'], scale=config['scale'],
             recursion_depth=config['recursion_depth'], r=config['r_averaging'])
         helpful_indices = helpful
-        # harmful_indices = harmful
+        harmful_indices = harmful
 
         test_sample_text = test_src_text_list_original[j].split()  # get test sentences base on index j
         test_array.append(test_sample_text)
-        helpful_sample_text =""
-        harmful_sample_text =""
-        #for k in range(3):
-            # for idx1, idx2 in zip(helpful_indices,harmful_indices): # concatenate all the helpful training sentences but separate with ","
-        for idx1 in helpful_indices:
+        helpful_sample_text = ""
+        harmful_sample_text = ""
+        # for k in range(3):
+        # for idx1, idx2 in zip(helpful_indices,harmful_indices): # concatenate all the helpful training sentences but separate with ","
+        for idx1 in harmful_indices[:3]:
             # concatenate all the helpful training sentences but separate with ","
-            harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx1] 
+            harmful_sample_text += harmful_sample_text + "----" + train_src_text_list_original[idx1]
         harmful_array.append(harmful_sample_text)
-        
-        for idx1 in helpful_indices:
+
+        for idx2 in helpful_indices[:3]:
             # concatenate all the helpful training sentences but separate with ","
-            helpful_sample_text += helpful_sample_text+","+train_src_text_list_original[idx1]  #
-                # harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx2]  #
+            helpful_sample_text+= helpful_sample_text+ "----" + train_src_text_list_original[idx2]
+            # harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx2]  #
         helpful_array.append(helpful_sample_text)
         # after every 10 test samples, write 3 cloumns [test sample, cancatenated harmful sentences,
         # cancatenated harmful sentences] into csv files
 
-        if j%3 == 0:
+        if j % 3 == 0:
             # create a file which have file that name has j, sentence, 10 samples
             with open(f'sentence_output{j}.txt', 'w', newline='') as f:
                 for k in range(len(test_array)):
-                    f.write(test_array[k])
+                    f.write(str(test_array[k]))
                     f.write("\t")
-                    f.write(harmful_array[k])
+                    f.write(str(harmful_array[k]))
                     f.write("\t")
-                    f.write(helpful_array[k])
+                    f.write(str(helpful_array[k]))
                     f.write("\n")
             f.close()
-            harmful_arrya=[]
-            helpful_array=[]
-            test_array=[]
+            harmful_array = []
+            helpful_array = []
+            test_array = []
         end_time = time.time()
 
         ###########
@@ -98,7 +99,7 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
         influences[str(i)]['time_calc_influence_s'] = end_time - start_time
         infl = [x.cpu().numpy().tolist() for x in influence]
         influences[str(i)]['influence'] = infl
-        influences[str(i)]['harmful'] = harmful[:100] # about the harmful, helpful, should i change or not
+        influences[str(i)]['harmful'] = harmful[:100]  # about the harmful, helpful, should i change or not
         influences[str(i)]['helpful'] = helpful[:100]
 
         tmp_influences_path = outdir.joinpath(f"influence_results_tmp_"
@@ -124,6 +125,7 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
         save_json(influences, influences_path)
 
     return influences
+
 
 def calc_influence_single(model, train_loader, test_loader, test_id_num, gpu, damp, scale,
                           recursion_depth, r, s_test_vec=None,
@@ -155,9 +157,9 @@ def calc_influence_single(model, train_loader, test_loader, test_id_num, gpu, da
         test_id_num: int, the number of the test dataset point
             the influence was calculated for"""
     # Calculate s_test vectors if not provided.
-    if not s_test_vec: # list of torch tensor, contains s_test vectors.
-        src_list, input_trg_list, e_mask, d_mask, t_test = test_loader.dataset[test_id_num] # get specific test sample
-        src_list = test_loader.collate_fn([src_list]) #collate_fn通常期望接收一个样本列表作为输入，并将这些样本组合成一个批次。
+    if not s_test_vec:  # list of torch tensor, contains s_test vectors.
+        src_list, input_trg_list, e_mask, d_mask, t_test = test_loader.dataset[test_id_num]  # get specific test sample
+        src_list = test_loader.collate_fn([src_list])  # collate_fn通常期望接收一个样本列表作为输入，并将这些样本组合成一个批次。
         # 这里，将src_list作为唯一的元素放在一个新列表中，意味着你想将src_list中的所有元素视为一个整体、一个批次进行处理。
         # Tensor->Tensor, size 200->1 tensor[20 elements]->tensor[[20 elements]]
         input_trg_list = test_loader.collate_fn([input_trg_list])
@@ -166,12 +168,13 @@ def calc_influence_single(model, train_loader, test_loader, test_id_num, gpu, da
         t_test = test_loader.collate_fn([t_test])
         # s_test vector on single test sample
         s_test_vec = calc_s_test_single(model, src_list, input_trg_list, e_mask, d_mask, t_test, train_loader,
-                                        gpu, damp, scale, recursion_depth=recursion_depth, r=r) # list[tensor],size[50,512]
+                                        gpu, damp, scale, recursion_depth=recursion_depth,
+                                        r=r)  # list[tensor],size[50,512]
         # print(f's test vec is {s_test_vec}')
     # Calculate the influence function
     train_dataset_size = len(train_loader.dataset)
     influences = []
-    for i in range(train_dataset_size): # for each training data point
+    for i in range(train_dataset_size):  # for each training data point
         src_list, input_trg_list, e_mask, d_mask, t_train = train_loader.dataset[i]
         src_list = test_loader.collate_fn([src_list])
         input_trg_list = test_loader.collate_fn([input_trg_list])
@@ -181,14 +184,15 @@ def calc_influence_single(model, train_loader, test_loader, test_id_num, gpu, da
         if time_logging:
             time_a = datetime.datetime.now()
         # calculate this training sample's gradient from loss to parameters
-        grad_z_vec = grad_z(src_list, input_trg_list, e_mask, d_mask, t_train, model, gpu=gpu) # list[tensor], size[50,512], loss相对于paramerters的gradient
+        grad_z_vec = grad_z(src_list, input_trg_list, e_mask, d_mask, t_train, model,
+                            gpu=gpu)  # list[tensor], size[50,512], loss相对于paramerters的gradient
         # print(grad_z_vec[5].shape) #
         if time_logging:
             time_b = datetime.datetime.now()
             time_delta = time_b - time_a
             logging.info(f"Time for grad_z iter:"
                          f" {time_delta.total_seconds() * 1000}")
-        tmp_influence = -sum( # I(z, ztest)=−stest · ∇θL(zi, ˆ θ), # sum all the value after k and j operation
+        tmp_influence = -sum(  # I(z, ztest)=−stest · ∇θL(zi, ˆ θ), # sum all the value after k and j operation
             [
                 ####################
                 # TODO: understand this equation and why grad_z_vec and s_test_vec have the same size
@@ -200,15 +204,18 @@ def calc_influence_single(model, train_loader, test_loader, test_id_num, gpu, da
                 ####################
                 # TODO: k j
                 ####################
-                torch.sum(k * j).data # sum all the elements in k*j, [1,2] * [3,4]= [3,8], 3+8=11. size of k and j:Tensor(3208,512)(512,512)(512,)(2048,512)(2048,)(512,2048)
+                torch.sum(k * j).data
+                # sum all the elements in k*j, [1,2] * [3,4]= [3,8], 3+8=11. size of k and j:Tensor(3208,512)(512,512)(512,)(2048,512)(2048,)(512,2048)
                 for k, j in zip(grad_z_vec, s_test_vec)
-            ]) / train_dataset_size # get average value of influence
-        influences.append(tmp_influence.cpu()) # influences contain all the influence for all training data
+            ]) / train_dataset_size  # get average value of influence
+        influences.append(tmp_influence.cpu())  # influences contain all the influence for all training data
         # display_progress("Calc. influence function: ", i, train_dataset_size)
-    helpful = np.argsort(influences) # This function call does not sort the influences array itself but returns an array
+    helpful = np.argsort(
+        influences)  # This function call does not sort the influences array itself but returns an array
     # of indices. These indices are ordered such that, if used to index influences, the result would be a sorted array.
     harmful = helpful[::-1]
     return influences, harmful.tolist(), helpful.tolist(), test_id_num
+
 
 # the arguments are from test data, so it's to calculate the Stest for test data
 def calc_s_test_single(model, src_list, input_trg_list, e_mask, d_mask, t_test, train_loader, gpu=1,
@@ -240,7 +247,7 @@ def calc_s_test_single(model, src_list, input_trg_list, e_mask, d_mask, t_test, 
     for i in range(r):
         s_test_vec_list.append(s_test(src_list, input_trg_list, e_mask, d_mask, t_test, model, train_loader,
                                       gpu=gpu, damp=damp, scale=scale,
-                                      recursion_depth=recursion_depth)) # append the hvp
+                                      recursion_depth=recursion_depth))  # append the hvp
         # display_progress("Averaging r-times: ", i, r)
 
     ################################
@@ -248,8 +255,8 @@ def calc_s_test_single(model, src_list, input_trg_list, e_mask, d_mask, t_test, 
     #       entries while all subsequent ones only have 335 entries?
     ################################
 
-    #calculate the average s_test_vec through iteration(s)
-    s_test_vec = s_test_vec_list[0] #size 50
+    # calculate the average s_test_vec through iteration(s)
+    s_test_vec = s_test_vec_list[0]  # size 50
     for i in range(1, r):
         s_test_vec += s_test_vec_list[i]
 
