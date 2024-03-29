@@ -1,12 +1,10 @@
 #! /usr/bin/env python3
 
-import torch
 import time
 import datetime
-import numpy as np
 import copy
 import logging
-import sys
+from custom_data import *
 
 from pathlib import Path
 from pytorch_influence_functions.influence_function import s_test, grad_z
@@ -35,6 +33,9 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
     influences_meta_path = outdir.joinpath(influences_meta_fn)
     save_json(influences_meta, influences_meta_path)
 
+    # get the dataloader along with source text list and target text list.
+    train_loader, train_src_text_list_original, train_trg_text_list_original = get_data_loader(TRAIN_NAME)
+    test_loader,test_src_text_list_original,test_trg_text_list_original = get_data_loader(TEST_NAME)
 
     influences = {}
     # Main loop for calculating the influence function one test sample per iteration.
@@ -46,6 +47,31 @@ def calc_img_wise(config, model, train_loader, test_loader,sample_list):
             model, train_loader, test_loader, test_id_num=i, gpu=config['gpu'],
             damp=config['damp'], scale=config['scale'],
             recursion_depth=config['recursion_depth'], r=config['r_averaging'])
+        helpful_indices = helpful
+        # harmful_indices = harmful
+
+        test_sample_text = test_src_text_list_original[j].split()  # get test sentences base on index j
+        helpful_sample_text =""
+        # harmful_sample_text =""
+        for k in range(3):
+            # for idx1, idx2 in zip(helpful_indices,harmful_indices): # concatenate all the helpful training sentences but separate with ","
+             for idx1 in helpful_indices:
+                 # concatenate all the helpful training sentences but separate with ","
+                 helpful_sample_text += helpful_sample_text+","+train_src_text_list_original[idx1]  #
+                # harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx2]  #
+
+        # after every 10 test samples, write 3 cloumns [test sample, cancatenated harmful sentences,
+        # cancatenated harmful sentences] into csv files
+
+        if j%10 == 0:
+            # create a file which have file that name has j, sentence, 10 samples
+            with open(f'sentence_output{j}.txt', 'w', newline='') as f:
+                f.write(test_sample_text)
+                f.write("\t")
+                # f.write(harmful_sample_text)
+                # f.write("\t")
+                f.write(helpful_sample_text)
+                f.write("\n")
         end_time = time.time()
 
         ###########

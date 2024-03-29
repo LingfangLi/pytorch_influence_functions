@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-import logging
 import sys
 # append this as the system path
 sys.path.append('InfluenceFunctions')
@@ -20,7 +19,7 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in model.parameters()) #numel:Returns the total number of elements in the input tensor.
     # it's the index of test sample will be used in calculation later
 
-    num_test_samples = 1000  # 假设有1000个测试样本
+    num_test_samples = 10  # 假设有1000个测试样本
     sample_list = [i for i in range(num_test_samples)] # list, contain element 0
 
     # get the dataloader along with source text list and target text list.
@@ -33,26 +32,27 @@ if __name__ == "__main__":
     # Implement influence function
     influences = ptif.calc_img_wise(config, model, train_loader, test_loader, sample_list)
 
-    # 初始化变量以存储总重合数和测试样本数
-    total_overlap = 0
 
-    for i in range(num_test_samples):
-        # 对于每个测试样本，找到其最有帮助的3个样本
-        helpful_indices = influences[str(i)]['helpful'][:3]
-
-        test_sample_text = test_src_text_list_original[i].split()  # 分词假设
-        overlap_count = 0
-
-        for idx in helpful_indices:
-            helpful_sample_text = train_src_text_list_original[idx].split()  # 分词假设
-            overlap_count += calculate_overlap(test_sample_text, helpful_sample_text)
-        print(f'overlap_count is : {overlap_count}')
-
-        total_overlap += overlap_count
-
-    # 计算平均重合词汇数
-    average_overlap = total_overlap / num_test_samples
-    logging.info(f'Average overlap: {average_overlap}')
+    # # 初始化变量以存储总重合数和测试样本数
+    # total_overlap = 0
+    #
+    # for i in range(num_test_samples):
+    #     # 对于每个测试样本，找到其最有帮助的3个样本
+    #     helpful_indices = influences[str(i)]['helpful'][:3]
+    #
+    #     test_sample_text = test_src_text_list_original[i].split()  # 分词假设
+    #     overlap_count = 0
+    #
+    #     for idx in helpful_indices:
+    #         helpful_sample_text = train_src_text_list_original[idx].split()  # 分词假设
+    #         overlap_count += calculate_overlap(test_sample_text, helpful_sample_text)
+    #     print(f'overlap_count is : {overlap_count}')
+    #
+    #     total_overlap += overlap_count
+    #
+    # # 计算平均重合词汇数
+    # average_overlap = total_overlap / num_test_samples
+    # logging.info(f'Average overlap: {average_overlap}')
 
     # harmful = influences[str(sample_list[0])]['harmful']
     # helpful = influences[str(sample_list[0])]['helpful']

@@ -2,7 +2,7 @@ import torch
 
 # Path or parameters for data
 DATA_DIR = r'D:\OneDrive - The University of Liverpool\LLMs\InfluenceFunctions\data'
-MODEL_DIR = r'D:\OneDrive - The University of Liverpool\LLMs\InfluenceFunctions\trained-model'
+# MODEL_DIR = r'D:\OneDrive - The University of Liverpool\LLMs\InfluenceFunctions\trained-model'
 SP_DIR = f'{DATA_DIR}\sp'
 SRC_DIR = 'src'
 TRG_DIR = 'trg'
