@@ -19,7 +19,7 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in model.parameters()) #numel:Returns the total number of elements in the input tensor.
     # it's the index of test sample will be used in calculation later
 
-    num_test_samples =1   # 假设有1000个测试样本
+    num_test_samples =9   # 假设有1000个测试样本
     sample_list = [i for i in range(num_test_samples)] # list, contain element 0
 
     # get the dataloader along with source text list and target text list.

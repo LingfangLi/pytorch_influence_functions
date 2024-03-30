@@ -6,7 +6,7 @@ import datetime
 import copy
 import logging
 from custom_data import *
-
+import csv
 from pathlib import Path
 from pytorch_influence_functions.influence_function import s_test, grad_z
 from pytorch_influence_functions.utils import save_json, display_progress
@@ -51,42 +51,50 @@ def calc_img_wise(config, model, train_loader, test_loader, sample_list):
             model, train_loader, test_loader, test_id_num=i, gpu=config['gpu'],
             damp=config['damp'], scale=config['scale'],
             recursion_depth=config['recursion_depth'], r=config['r_averaging'])
-        helpful_indices = helpful
-        harmful_indices = harmful
+        helpful_indices = helpful[:3]
+        harmful_indices = harmful[:3]
 
-        test_sample_text = test_src_text_list_original[j].split()  # get test sentences base on index j
-        test_array.append(test_sample_text)
+        test_sample_text = test_src_text_list_original[j]  # get test sentences base on index j
+
         helpful_sample_text = ""
         harmful_sample_text = ""
         # for k in range(3):
         # for idx1, idx2 in zip(helpful_indices,harmful_indices): # concatenate all the helpful training sentences but separate with ","
-        for idx1 in harmful_indices[:3]:
+        for idx1 in harmful_indices:
             # concatenate all the helpful training sentences but separate with ","
-            harmful_sample_text += harmful_sample_text + "----" + train_src_text_list_original[idx1]
-        harmful_array.append(harmful_sample_text)
+            # harmful_sample_text += harmful_sample_text + "----" + train_src_text_list_original[idx1]
+            harmful_array.append(train_src_text_list_original[idx1])
 
-        for idx2 in helpful_indices[:3]:
+        for idx2 in helpful_indices:
             # concatenate all the helpful training sentences but separate with ","
-            helpful_sample_text+= helpful_sample_text+ "----" + train_src_text_list_original[idx2]
+            # helpful_sample_text+= helpful_sample_text+ "----" + train_src_text_list_original[idx2]
             # harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx2]  #
-        helpful_array.append(helpful_sample_text)
+             helpful_array.append(train_src_text_list_original[idx2])
         # after every 10 test samples, write 3 cloumns [test sample, cancatenated harmful sentences,
         # cancatenated harmful sentences] into csv files
 
+        # write test_sample, top 3 harmful samples and helpful samples(seperated by "|") to csv file line by line
         if j % 3 == 0:
-            # create a file which have file that name has j, sentence, 10 samples
-            with open(f'sentence_output{j}.txt', 'w', newline='') as f:
-                for k in range(len(test_array)):
-                    f.write(str(test_array[k]))
-                    f.write("\t")
-                    f.write(str(harmful_array[k]))
-                    f.write("\t")
-                    f.write(str(helpful_array[k]))
-                    f.write("\n")
-            f.close()
-            harmful_array = []
-            helpful_array = []
-            test_array = []
+            current_file_name = f'D:\\OneDrive - The University of Liverpool\\LLMs\\InfluenceFunctions\\output_sentence\\sentence_output{j}.csv'
+            with open(current_file_name, mode='w', newline='') as file:
+                csv_writer = csv.writer(file)
+                # Write column name
+                csv_writer.writerow(['test_sample', 'harmful_samples', 'helpful_samples'])
+                # use'|'as separetor to convert array as string
+                harmful_str = '|'.join(harmful_array)
+                harmful_str = '|'.join(harmful_array)
+                helpful_str = '|'.join(helpful_array)
+                # write data in one row
+                csv_writer.writerow([test_sample_text, harmful_str, helpful_str])
+        else:
+            # in other condition, just use most rencently created file to write data in
+            with open(current_file_name, mode='a', newline='') as file:
+                csv_writer = csv.writer(file)
+                harmful_str = '|'.join(harmful_array)
+                helpful_str = '|'.join(helpful_array)
+                csv_writer.writerow([test_sample_text, harmful_str, helpful_str])
+        harmful_array = []
+        helpful_array = []
         end_time = time.time()
 
         ###########
