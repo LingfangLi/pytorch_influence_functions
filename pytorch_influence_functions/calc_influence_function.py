@@ -56,25 +56,15 @@ def calc_img_wise(config, model, train_loader, test_loader, sample_list):
 
         test_sample_text = test_src_text_list_original[j]  # get test sentences base on index j
 
-        helpful_sample_text = ""
-        harmful_sample_text = ""
-        # for k in range(3):
         # for idx1, idx2 in zip(helpful_indices,harmful_indices): # concatenate all the helpful training sentences but separate with ","
         for idx1 in harmful_indices:
-            # concatenate all the helpful training sentences but separate with ","
-            # harmful_sample_text += harmful_sample_text + "----" + train_src_text_list_original[idx1]
             harmful_array.append(train_src_text_list_original[idx1])
 
         for idx2 in helpful_indices:
-            # concatenate all the helpful training sentences but separate with ","
-            # helpful_sample_text+= helpful_sample_text+ "----" + train_src_text_list_original[idx2]
-            # harmful_sample_text += harmful_sample_text+","+train_src_text_list_original[idx2]  #
              helpful_array.append(train_src_text_list_original[idx2])
-        # after every 10 test samples, write 3 cloumns [test sample, cancatenated harmful sentences,
-        # cancatenated harmful sentences] into csv files
 
         # write test_sample, top 3 harmful samples and helpful samples(seperated by "|") to csv file line by line
-        if j % 3 == 0:
+        if j % 100 == 0:
             current_file_name = f'D:\\OneDrive - The University of Liverpool\\LLMs\\InfluenceFunctions\\output_sentence\\sentence_output{j}.csv'
             with open(current_file_name, mode='w', newline='') as file:
                 csv_writer = csv.writer(file)
